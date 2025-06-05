@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexora - بوابة الميتافيرس</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <style>
+        /* جميع الأنماط الأصلية تبقى كما هي */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a3a, #1a1a4a);
+            min-height: 100vh;
+            overflow-y: auto;
+            cursor: url('custom-cursor.png'), auto;
+        }
+
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            
+  transform: translateY(50px);
+  transition: all 1s ease-out;
+            z-index: 1000;
+            width: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+            margin: 50px auto;
+            padding: 40px;
+            color: white;
+            transform: translateZ(50px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00ffff; }
+            to { text-shadow: 0 0 20px #ff00ff; }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00ffff;
+            font-size: 0.9em;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .separator {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #00ffff;
+        }
+
+        .separator::before,
+        .separator::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ffff, transparent);
+            margin: 0 10px;
+        }
+
+        .social-login {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .social-btn {
+            width: 100%;
+            padding: 12px 25px;
+            border-radius: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .social-btn:nth-child(1) { border-color: #1877f2; }
+        .social-btn:nth-child(2) { border-color: #1da1f2; }
+        .social-btn:nth-child(3) { border-color: #0a66c2; }
+        .social-btn:nth-child(4) { border-color: #ea4335; }
+        .social-btn:nth-child(5) { border-color: #333; }
+        .social-btn:nth-child(6) { border-color: #a2aaad; }
+
+        .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+            transition: transform 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
+            transform: rotateX(15deg) rotateY(15deg);
+            transition: all 0.5s ease;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .signup-link a {
+            color: #00ffff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .signup-link a:hover {
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+                padding: 25px;
+                margin: 20px auto;
+            }
+            
+            .social-btn span {
+                display: none;
+            }
+            
+            .social-btn i {
+                font-size: 1.5em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .input-field {
+                padding: 12px;
+                font-size: 14px;
+            }
+            
+            .submit-btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+            
+            .logo {
+                font-size: 2em;
+            }
+        }
+
+        #langToggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            padding: 10px 25px;
+            border: 2px solid #00ffff;
+            border-radius: 30px;
+            background: rgba(0, 255, 255, 0.1);
+            color: #00ffff;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        #langToggle:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        } 
+          .error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .error-box {
+            background: #1a1a4a;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 0 30px rgba(255,0,0,0.3);
+        }
+
+        .error-main {
+            color: #ff4444;
+            font-size: 1.5em;
+            margin-bottom: 1rem;
+        }
+
+        .error-sub {
+            color: #fff;
+            font-size: 1em;
+            margin-bottom: 1.5rem;
+        }
+
+        .error-ok {
+            padding: 10px 30px;
+            background: #ff4444;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .error-ok:hover {
+            background: #ff6666;
+            transform: translateY(-2px);
+        }
+            .error-forgot-link {
+    margin-top: 1rem;
+    text-align: center;  
+            }
+
+
+.error-forgot-link a {
+    color: #00ffff;
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.error-forgot-link a:hover {
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    text-decoration: underline;
+    
+    transition: all 0.5s ease;
+    font-size: 1em;
+}
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff4444;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { bottom: -50px; }
+    to { bottom: 20px; }
+}
+.input-field {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+#captcha-container {
+    margin: 20px auto;
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+    
+}
+
+#captcha-container:hover {
+    transform: scale(1);
+}
+    </style>
+</head>
+<body>
+    <div class="vr-view" style="display: none;">
+        <a-scene embedded>
+          <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+          <a-sky color="#ECECEC"></a-sky>
+        </a-scene>
+      </div>
+    <canvas id="particle-canvas"></canvas>
+    
+    <button id="langToggle">English</button>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">Nexora</div>
+            <p>عش أكثر من الواقع</p>
+        </div>
+
+        <form id="loginForm" action="/submit" method="post">
+            
+            <div class="form-group">
+                <label class="input-label">اسم المستخدم</label>
+                <input type="text" class="input-field" placeholder="ادخل اسم المستخدم" required>
+            </div>
+
+            <div class="form-group">
+                <label class="input-label">البريد الإلكتروني</label>
+                <input type="email" class="input-field" placeholder="example@nexora.com" required>
+            </div>
+
+            <div class="form-group">
+                <label class="input-label">كلمة المرور</label>
+                <input type="password" class="input-field" placeholder="••••••••" required>
+            </div>
+
+           
+
+            <button type="submit" class="submit-btn" value="submit">انطلق إلى الميتافيرس</button>
+
+            <div class="separator">أو</div>
+
+            <div class="social-login">
+                <button type="button" class="social-btn">
+                    <i class="fab fa-facebook-f"></i>
+                    <span>سجل الدخول بواسطة Facebook</span>
+                </button>
+                <button type="button" class="social-btn">
+                    <i class="fab fa-twitter"></i>
+                    <span>سجل الدخول بواسطة Twitter</span>
+                </button>
+                <button type="button" class="social-btn">
+                    <i class="fab fa-linkedin-in"></i>
+                    <span>سجل الدخول بواسطة LinkedIn</span>
+                </button>
+                <button type="button" class="social-btn">
+                    <i class="fab fa-google"></i>
+                    <span>سجل الدخول بواسطة Google</span>
+                </button>
+                <button type="button" class="social-btn">
+                    <i class="fab fa-github"></i>
+                    <span>سجل الدخول بواسطة Github</span>
+                </button>
+                <button type="button" class="social-btn">
+                    <i class="fab fa-apple"></i>
+                    <span>سجل الدخول بواسطة Apple</span>
+                </button>
+            </div>
+
+            <div class="signup-link">
+                <span>ليس لديك حساب؟ </span>
+                <a href="C:\Users\hmxai\Documents\Web learning\New.html">سجّل الآن مجانًا</a>
+            </div>
+        </form>
+    </div>
+  <div class="error-overlay" id="errorOverlay">
+        <div class="error-box">
+            <div class="error-main" id="errorMain"></div>
+            <div class="error-sub" id="errorSub"></div>
+            <button class="error-ok" id="okbutton" onclick="hideError()"> حسناً </button>
+            <div class="error-forgot-link">
+                <a href="C:\Users\hmxai\Documents\Web learning\Forget-PassWord.html" id="forgotPasswordLink">هل نسيت كلمة المرور؟</a>
+            </div>
+        </div>
+    </div>
+    <script>
+          
+          
+// تحقق من دعم المتصفح
+if ('Notification' in window) {
+  // تحقق من حالة الإذن الحالية
+  if (Notification.permission === 'granted') {
+    showNotification();
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then(perm => {
+      if (perm === 'granted') {
+        showNotification();
+      }
+    });
+  }
+  
+  function showNotification() {
+    new Notification('مرحباً في Nexora!', {
+      body: 'تم تفعيل الإشعارات بنجاح',
+      icon: 'notification-icon.png',
+      vibrate: [200, 100, 200] // اهتزاز للأجهزة المدعومة
+    });
+  }
+} else {
+  console.warn('الإشعارات غير مدعومة في هذا المتصفح');
+}
+
+        if (navigator.xr) {
+  const arButton = document.createElement('button');
+  arButton.className = 'ar-button';
+  arButton.textContent = 'عرض في AR';
+  document.body.appendChild(arButton);
+  
+  arButton.addEventListener('click', () => {
+    // منطق تفعيل AR
+  });
+}
+        // نظام الترجمة الكامل
+        const translations = {
+            en: {
+                logo: "Nixora",
+                slogan: "Live Beyond Reality",
+                username: "Username",
+                email: "Email Address",
+                password: "Password",
+                submit: "Enter the Metaverse",
+                or: "OR",
+                facebook: "Continue with Facebook",
+                twitter: "Continue with Twitter",
+                linkedin: "Continue with LinkedIn",
+                google: "Continue with Google",
+                github: "Continue with Github",
+                apple: "Continue with Apple",
+                no_account: "Don't have an account?",
+                signup: "Sign up now for free",
+                username_placeholder: "Enter your username",
+                email_placeholder: "example@nexora.com",
+                password_placeholder: "••••••••",
+                signup_link: "Sign up now for free",
+                                error_main: "Incorrect Information!",
+                error_sub: "The information you entered is incorrect",
+                error_details: "Please check the username, password, and email",
+                        forgot_password: "Forgot Password?",
+        error_details: "Please check the username, password, and email",
+        reset_link: "Forget-PassWord.html",
+        copy_error: "Copying is not allowed",
+        paste_error: "Pasting is not allowed",
+        cut_error: "Cutting is not allowed"
+            },
+            ar: {
+                logo: "نيكسورا",
+                slogan: "عش أكثر من الواقع",
+                username: "اسم المستخدم",
+                email: "البريد الإلكتروني",
+                password: "كلمة المرور",
+                submit: "انطلق إلى الميتافيرس",
+                or: "أو",
+                facebook: "سجل الدخول بواسطة Facebook",
+                twitter: "سجل الدخول بواسطة Twitter",
+                linkedin: "سجل الدخول بواسطة LinkedIn",
+                google: "سجل الدخول بواسطة Google",
+                github: "سجل الدخول بواسطة Github",
+                apple: "سجل الدخول بواسطة Apple",
+                no_account: "ليس لديك حساب؟",
+                signup: "سجّل الآن مجانًا",
+                username_placeholder: "ادخل اسم المستخدم",
+                email_placeholder: "example@nexora.com",
+                password_placeholder: "••••••••",
+                signup_link: "سجّل الآن مجانًا",
+                                error_main: "المعلومات خاطئة!",
+                error_sub: "البيانات التي أدخلتها غير صحيحة",
+                error_details: "يرجى التحقق من اسم المستخدم، كلمة المرور، والبريد الإلكتروني",
+                        forgot_password: "هل نسيت كلمة المرور؟",
+        error_details: "يرجى التحقق من اسم المستخدم، كلمة المرور، والبريد الإلكتروني",
+        reset_link: "Forget-PassWord.html",
+        copy_error: "النسخ غير مسموح به",
+        paste_error: "اللصق غير مسموح به",
+        cut_error: "القص غير مسموح به"
+            }
+        };
+
+        let currentLang = 'ar';
+
+        function updateLanguage() {
+            // تحديث السمات الأساسية
+            document.documentElement.lang = currentLang;
+            document.body.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            
+            // تحديث العناصر الرئيسية
+            document.querySelector('.logo').textContent = translations[currentLang].logo;
+            document.querySelector('.header p').textContent = translations[currentLang].slogan;
+            
+            // تحديث التسميات
+            const labels = document.querySelectorAll('.input-label');
+            labels[0].textContent = translations[currentLang].username;
+            labels[1].textContent = translations[currentLang].email;
+            labels[2].textContent = translations[currentLang].password;
+            
+            // تحديث الـ placeholders
+            const inputs = document.querySelectorAll('.input-field');
+            inputs[0].placeholder = translations[currentLang].username_placeholder;
+            inputs[1].placeholder = translations[currentLang].email_placeholder;
+            inputs[2].placeholder = translations[currentLang].password_placeholder;
+            
+            // تحديث الزر الرئيسي
+            document.querySelector('.submit-btn').textContent = translations[currentLang].submit;
+            
+            // تحديث الفاصل
+            document.querySelector('.separator').textContent = translations[currentLang].or;
+            
+            // تحديث أزرار السوشيال ميديا
+            const socialSpans = document.querySelectorAll('.social-btn span');
+            socialSpans.forEach((span, index) => {
+                const keys = ['facebook', 'twitter', 'linkedin', 'google', 'github', 'apple'];
+                span.textContent = translations[currentLang][keys[index]];
+            });
+            
+            // تحديث رابط التسجيل
+            document.querySelector('.signup-link span').textContent = translations[currentLang].no_account;
+            document.querySelector('.signup-link a').textContent = translations[currentLang].signup;
+        }
+
+        // تبديل اللغة
+        document.getElementById('langToggle').addEventListener('click', () => {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            document.getElementById('langToggle').textContent = currentLang === 'ar' ? 'English' : 'العربية';
+            updateLanguage();
+        });
+
+        // الكود الأصلي للجسيمات
+        const canvas = document.querySelector('#particle-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 5000;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 5;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.005,
+            color: '#00ffff',
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        camera.position.z = 2;
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particlesMesh.rotation.y += 0.001;
+            particlesMesh.rotation.x += 0.001;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // تفاعلات الحقول الأصلية
+        const inputs = document.querySelectorAll('.input-field');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.style.transform = 'scale(1.02)';
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.style.transform = 'scale(1)';
+            });
+        });
+        document.querySelectorAll('.input-field').forEach(input => {
+    input.addEventListener('copy', (e) => {
+        e.preventDefault();
+        showToast(translations[currentLang].copy_error);
+    });
+
+    input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        showToast(translations[currentLang].paste_error);
+    });
+
+    input.addEventListener('cut', (e) => {
+        e.preventDefault();
+        showToast(translations[currentLang].cut_error);
+    });
+});
+
+// وظيفة لعرض رسائل التنبيه (اختياري)
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.backgroundColor = '#ff4444';
+    toast.style.color = 'white';
+    toast.style.padding = '10px 20px';
+    toast.style.borderRadius = '5px';
+    toast.style.zIndex = '9999';
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 2000);
+}
+
+        // تفاعلات أزرار السوشيال ميديا
+        const socialBtns = document.querySelectorAll('.social-btn');
+        socialBtns.forEach(btn => {
+            btn.addEventListener('mouseover', () => {
+                btn.style.transform = 'translateY(-3px)';
+                btn.style.boxShadow = '0 5px 15px rgba(0, 255, 255, 0.4)';
+            });
+            btn.addEventListener('mouseout', () => {
+                btn.style.transform = 'translateY(0)';
+                btn.style.boxShadow = 'none';
+            });
+        });
+
+        // إرسال النموذج
+ const validCredentials = {
+            username: "Luffy",
+            password: "Monkey.D.Luffy...best",
+            email: "l9499720hmzauu@gmail.com"
+        };
+
+        // وظيفة عرض الخطأ
+        function showError() {
+    const lang = currentLang;
+    document.getElementById('errorMain').textContent = translations[lang].error_main;
+    document.getElementById('errorSub').textContent = translations[lang].error_sub + " - " + translations[lang].error_details;
+    
+    const forgotLink = document.getElementById('forgotPasswordLink');
+    forgotLink.textContent = translations[lang].forgot_password;
+    forgotLink.href = translations[lang].reset_link; // إضافة الرابط الديناميكي
+    
+    document.getElementById('errorOverlay').style.display = 'flex';
+}
+
+        // وظيفة إخفاء الخطأ
+        function hideError() {
+            document.getElementById('errorOverlay').style.display = 'none';
+            document.querySelectorAll('.input-field').forEach(input => input.value = '');
+        }
+
+        // تحديث حدث إرسال النموذج
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const username = document.querySelector('input[type="text"]').value;
+            const password = document.querySelector('input[type="password"]').value;
+            const email = document.querySelector('input[type="email"]').value;
+
+            if(username === validCredentials.username && 
+               password === validCredentials.password && 
+               email === validCredentials.email) {
+                window.location.href = 'The main.html'; // غير اسم الصفحة حسب الحاجة
+            } else {
+                showError();
+            }
+        });
+        document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = translations[currentLang].reset_link;
+});
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 2000);
+}
+// أضف عند التمرير
+window.addEventListener('scroll', () => {
+  const container = document.querySelector('.container');
+  if (container.getBoundingClientRect().top < window.innerHeight * 0.8) {
+    container.classList.add('visible');
+  }
+});
+const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+
+document.querySelectorAll('button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    clickSound.play();
+  });
+});
+    </script>
+    
+
+
+</body>
+</html>
